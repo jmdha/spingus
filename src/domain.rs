@@ -22,13 +22,16 @@ use crate::{
 
 use self::{
     action::{parse_action, Actions},
+    constants::parse_constants,
     name::parse_name,
+    parameter::Parameters,
     predicate::{parse_predicates, Predicates},
     requirement::Requirements,
     types::{parse_types, Types},
 };
 
 pub mod action;
+pub mod constants;
 pub mod name;
 pub mod parameter;
 pub mod predicate;
@@ -40,25 +43,29 @@ pub struct Domain {
     pub name: String,
     pub requirements: Option<Requirements>,
     pub types: Option<Types>,
+    pub constants: Option<Parameters>,
     pub predicates: Predicates,
     pub actions: Actions,
 }
 
 fn parse_internal(input: &str) -> IResult<&str, Domain> {
     let (remaining, _) = spaced(tag("define"))(input)?;
-    let (remaining, (name, requirements, types, predicates, actions)) = permutation((
-        spaced(delimited(char('('), parse_name, char(')'))),
-        opt(spaced(delimited(char('('), parse_requirements, char(')')))),
-        opt(spaced(delimited(char('('), parse_types, char(')')))),
-        spaced(delimited(char('('), parse_predicates, char(')'))),
-        many1(spaced(delimited(char('('), parse_action, char(')')))),
-    ))(remaining)?;
+    let (remaining, (name, requirements, types, constants, predicates, actions)) =
+        permutation((
+            spaced(delimited(char('('), parse_name, char(')'))),
+            opt(spaced(delimited(char('('), parse_requirements, char(')')))),
+            opt(spaced(delimited(char('('), parse_types, char(')')))),
+            opt(spaced(delimited(char('('), parse_constants, char(')')))),
+            spaced(delimited(char('('), parse_predicates, char(')'))),
+            many1(spaced(delimited(char('('), parse_action, char(')')))),
+        ))(remaining)?;
     Ok((
         remaining,
         Domain {
             name,
             requirements,
             types,
+            constants,
             predicates,
             actions,
         },
@@ -91,6 +98,7 @@ fn test() {
                     sub_types: vec!["subtype1".to_string()]
                 },
             ]),
+            constants: None,
             predicates: vec![
                 Predicate {
                     name: "predicate1".to_string(),

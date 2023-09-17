@@ -1,6 +1,7 @@
 use nom::{
     branch::alt,
     character::complete::{alphanumeric1, char, multispace0},
+    combinator::opt,
     multi::{fold_many0, fold_many1, many1, separated_list1},
     sequence::{delimited, preceded, separated_pair},
     IResult,
@@ -18,9 +19,9 @@ pub type Parameters = Vec<Parameter>;
 
 fn parse_typed(input: &str) -> IResult<&str, Parameters> {
     let (remainder, parameters) = separated_pair(
-        separated_list1(multispace0, preceded(char('?'), named)),
+        separated_list1(multispace0, preceded(opt(char('?')), named)),
         delimited(multispace0, char('-'), multispace0),
-        alphanumeric1,
+        named,
     )(input)?;
     Ok((
         remainder,

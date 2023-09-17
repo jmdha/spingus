@@ -17,6 +17,15 @@ use rstest::*;
 #[case("freecell-untyped")]
 #[case("logistics-typed")]
 #[case("logistics-untyped")]
+#[case("satellite")]
+#[case("driverlog-automatic")]
+#[case("driverlog-hand-coded")]
+#[case("barman-agile")]
+#[case("barman-satisficing")]
+#[case("grid")]
+#[case("child-snack-agile")]
+#[case("child-snack-satisficing")]
+#[case("hiking-sequential-agile")]
 fn parse_domain(#[case] domain_name: &str) {
     let path = env::current_dir().unwrap();
     println!("The current directory is {}", path.display());

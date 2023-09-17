@@ -6,7 +6,7 @@ use nom::{
     IResult,
 };
 
-use crate::shared::spaced;
+use crate::shared::{named, spaced};
 
 pub type Requirements = Vec<String>;
 
@@ -14,7 +14,7 @@ pub type Requirements = Vec<String>;
 pub(super) fn parse_requirements(input: &str) -> IResult<&str, Requirements> {
     let (remainder, _) = spaced(tag(":requirements"))(input)?;
     let (remainder, requirements) =
-        separated_list0(char(' '), preceded(char(':'), alpha1))(remainder)?;
+        separated_list0(char(' '), preceded(char(':'), named))(remainder)?;
     Ok((
         remainder,
         requirements.iter().map(|r| r.to_string()).collect(),
