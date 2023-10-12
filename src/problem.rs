@@ -18,7 +18,7 @@ pub mod init;
 mod name;
 pub mod object;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Problem {
     pub name: String,
     pub domain: String,

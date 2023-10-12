@@ -9,7 +9,7 @@ use nom::{
 
 use crate::shared::{named, spaced};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Type {
     pub name: String,
     pub sub_types: Vec<String>,

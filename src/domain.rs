@@ -26,7 +26,7 @@ pub mod predicate;
 pub mod requirement;
 pub mod types;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Domain {
     pub name: String,
     pub requirements: Option<Requirements>,
