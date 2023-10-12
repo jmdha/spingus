@@ -1,8 +1,5 @@
 use nom::{
-    bytes::complete::tag,
-    character::complete::{alpha1, char},
-    multi::separated_list0,
-    sequence::preceded,
+    bytes::complete::tag, character::complete::char, multi::separated_list0, sequence::preceded,
     IResult,
 };
 

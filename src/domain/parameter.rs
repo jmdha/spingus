@@ -1,15 +1,15 @@
 use nom::{
     branch::alt,
-    character::complete::{alphanumeric1, char, multispace0},
+    character::complete::{char, multispace0},
     combinator::opt,
-    multi::{fold_many0, fold_many1, many1, separated_list1},
+    multi::{fold_many0, many1, separated_list1},
     sequence::{delimited, preceded, separated_pair},
     IResult,
 };
 
 use crate::shared::{named, spaced};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Parameter {
     Untyped { name: String },
     Typed { name: String, type_name: String },

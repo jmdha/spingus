@@ -1,22 +1,10 @@
 use nom::{
-    branch::permutation,
-    bytes::complete::tag,
-    character::complete::char,
-    character::complete::multispace0,
-    combinator::opt,
-    multi::many1,
-    sequence::{delimited, preceded},
-    IResult,
+    branch::permutation, bytes::complete::tag, character::complete::char, combinator::opt,
+    multi::many1, sequence::delimited, IResult,
 };
 
 use crate::{
-    domain::{
-        action::{effect::Effect, precondition::Precondition, Action},
-        parameter::Parameter,
-        predicate::Predicate,
-        requirement::parse_requirements,
-        types::Type,
-    },
+    domain::requirement::parse_requirements,
     shared::{remove_comments, spaced},
 };
 
@@ -32,13 +20,13 @@ use self::{
 
 pub mod action;
 pub mod constants;
-pub mod name;
+mod name;
 pub mod parameter;
 pub mod predicate;
 pub mod requirement;
 pub mod types;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Domain {
     pub name: String,
     pub requirements: Option<Requirements>,
@@ -82,68 +70,82 @@ pub fn parse_domain(input: &str) -> Result<Domain, String> {
     Ok(domain)
 }
 
-#[test]
-fn test() {
-    assert_eq!(
-        Ok(Domain {
-            name: "name".to_string(),
-            requirements: Some(vec!["strips".to_string(), "typing".to_string()]),
-            types: Some(vec![
-                Type {
-                    name: "object".to_string(),
-                    sub_types: vec!["type1".to_string(), "type2".to_string()]
-                },
-                Type {
-                    name: "type1".to_string(),
-                    sub_types: vec!["subtype1".to_string()]
-                },
-            ]),
-            constants: None,
-            predicates: vec![
-                Predicate {
-                    name: "predicate1".to_string(),
+#[cfg(test)]
+mod test {
+    use crate::{
+        domain::{
+            action::{string_expression::StringExpression, Action},
+            parameter::Parameter,
+            parse_domain,
+            predicate::Predicate,
+            types::Type,
+            Domain,
+        },
+        term::Term,
+    };
+
+    #[test]
+    fn parse_dummy_domain() {
+        assert_eq!(
+            Ok(Domain {
+                name: "name".to_string(),
+                requirements: Some(vec!["strips".to_string(), "typing".to_string()]),
+                types: Some(vec![
+                    Type {
+                        name: "object".to_string(),
+                        sub_types: vec!["type1".to_string(), "type2".to_string()]
+                    },
+                    Type {
+                        name: "type1".to_string(),
+                        sub_types: vec!["subtype1".to_string()]
+                    },
+                ]),
+                constants: None,
+                predicates: vec![
+                    Predicate {
+                        name: "predicate1".to_string(),
+                        parameters: vec![Parameter::Typed {
+                            name: "a".to_string(),
+                            type_name: "type1".to_string()
+                        },]
+                    },
+                    Predicate {
+                        name: "predicate2".to_string(),
+                        parameters: vec![Parameter::Untyped {
+                            name: "a".to_string(),
+                        },]
+                    }
+                ],
+                actions: vec![Action {
+                    name: "action1".to_string(),
                     parameters: vec![Parameter::Typed {
                         name: "a".to_string(),
                         type_name: "type1".to_string()
-                    },]
-                },
-                Predicate {
-                    name: "predicate2".to_string(),
-                    parameters: vec![Parameter::Untyped {
-                        name: "a".to_string(),
-                    },]
-                }
-            ],
-            actions: vec![Action {
-                name: "action1".to_string(),
-                parameters: vec![Parameter::Typed {
-                    name: "a".to_string(),
-                    type_name: "type1".to_string()
-                }],
-                precondition: Some(Precondition::And(vec![
-                    Precondition::Predicate(action::term::Term {
-                        name: "predicate1".to_string(),
-                        parameters: vec!["a".to_string()]
-                    }),
-                    Precondition::Not(Box::new(Precondition::Predicate(action::term::Term {
-                        name: "predicate2".to_string(),
-                        parameters: vec!["a".to_string()]
-                    })))
-                ])),
-                effect: Effect::And(vec![
-                    Effect::Predicate(action::term::Term {
-                        name: "predicate1".to_string(),
-                        parameters: vec!["a".to_string()]
-                    }),
-                    Effect::Predicate(action::term::Term {
-                        name: "predicate2".to_string(),
-                        parameters: vec!["a".to_string()]
-                    })
-                ])
-            }]
-        }),
-        parse_domain(
-            "(define (domain name)
+                    }],
+                    precondition: Some(StringExpression::And(vec![
+                        StringExpression::Predicate(Term {
+                            name: "predicate1".to_string(),
+                            parameters: vec!["a".to_string()]
+                        }),
+                        StringExpression::Not(Box::new(StringExpression::Predicate(Term {
+                            name: "predicate2".to_string(),
+                            parameters: vec!["a".to_string()]
+                        })))
+                    ])),
+                    effect: StringExpression::And(vec![
+                        StringExpression::Predicate(Term {
+                            name: "predicate1".to_string(),
+                            parameters: vec!["a".to_string()]
+                        }),
+                        StringExpression::Predicate(Term {
+                            name: "predicate2".to_string(),
+                            parameters: vec!["a".to_string()]
+                        })
+                    ])
+                }]
+            }),
+            parse_domain(
+                "(define (domain name)
                      (:requirements :strips :typing)
                      (:types
                         type1 type2 - object
@@ -166,6 +168,7 @@ fn test() {
                         )
                     )
              )",
-        )
-    );
+            )
+        );
+    }
 }

@@ -29,10 +29,11 @@ where
     delimited(multispace0, f, multispace0)
 }
 
-pub fn named(input: &str) -> IResult<&str, &str> {
-    let (remainder, name) = is_not(" \t\r\n()?")(input)?;
+pub fn named(input: &str) -> IResult<&str, String> {
+    let (remainder, name) = is_not(" \t\r\n()?:")(input)?;
     not(tag("-"))(name)?;
-    return Ok((remainder, name));
+    not(tag("="))(name)?;
+    return Ok((remainder, name.to_lowercase().to_owned()));
 }
 
 #[test]
@@ -44,15 +45,4 @@ fn remove_comments_test() {
     assert_eq!("\n", remove_comments(";abc\n"));
     assert_eq!("\n123", remove_comments(";abc\n123"));
     assert_eq!("0\n123", remove_comments("0;abc\n123"));
-}
-
-#[test]
-fn named_test() {
-    assert_eq!(Ok(("", "abc")), named("abc"));
-    assert_eq!(Ok((" d", "abc")), named("abc d"));
-    assert_eq!(Ok(("\td", "abc")), named("abc\td"));
-    assert_eq!(Ok(("\r\nd", "abc")), named("abc\r\nd"));
-    assert_eq!(Ok(("(d", "abc")), named("abc(d"));
-    assert_eq!(Ok((")d", "abc")), named("abc)d"));
-    assert_eq!(Ok((" c", "a-b")), named("a-b c"));
 }

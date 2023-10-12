@@ -1,27 +1,21 @@
-pub mod effect;
-pub mod precondition;
-pub mod term;
+pub mod string_expression;
+use self::string_expression::{parse_expression, StringExpression};
 
 use nom::{
-    branch::permutation,
-    bytes::complete::tag,
-    character::complete::{alphanumeric1, char, multispace0},
-    combinator::opt,
-    sequence::{delimited, preceded},
-    IResult,
+    branch::permutation, bytes::complete::tag, character::complete::char, combinator::opt,
+    sequence::delimited, IResult,
 };
 
 use crate::shared::{named, spaced};
 
 use super::parameter::{self, Parameters};
 
-#[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Action {
     pub name: String,
     pub parameters: Parameters,
-    pub precondition: Option<precondition::Precondition>,
-    pub effect: effect::Effect,
+    pub precondition: Option<StringExpression>,
+    pub effect: StringExpression,
 }
 pub type Actions = Vec<Action>;
 
@@ -39,14 +33,14 @@ fn parse_parameters(input: &str) -> IResult<&str, Parameters> {
     )(remainder)
 }
 
-fn parse_precondition(input: &str) -> IResult<&str, precondition::Precondition> {
+fn parse_precondition(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, _) = spaced(tag(":precondition"))(input)?;
-    precondition::parse_precondition(remainder)
+    parse_expression(remainder)
 }
 
-fn parse_effect(input: &str) -> IResult<&str, effect::Effect> {
+fn parse_effect(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, _) = spaced(tag(":effect"))(input)?;
-    effect::parse_effect(remainder)
+    parse_expression(remainder)
 }
 
 #[allow(dead_code)]

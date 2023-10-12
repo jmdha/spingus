@@ -1,15 +1,15 @@
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alphanumeric1, char, multispace0, multispace1},
-    multi::{many1, separated_list0, separated_list1},
+    character::complete::{char, multispace0, multispace1},
+    multi::{many1, separated_list1},
     sequence::{delimited, preceded, separated_pair},
     IResult,
 };
 
 use crate::shared::{named, spaced};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Type {
     pub name: String,
     pub sub_types: Vec<String>,
@@ -81,7 +81,7 @@ fn test() {
         Ok((
             "",
             vec![Type {
-                name: "Object".to_string(),
+                name: "object".to_string(),
                 sub_types: vec![]
             }]
         )),
@@ -91,7 +91,7 @@ fn test() {
         Ok((
             "",
             vec![Type {
-                name: "Object".to_string(),
+                name: "object".to_string(),
                 sub_types: vec!["type1".to_string()]
             }]
         )),
@@ -101,7 +101,7 @@ fn test() {
         Ok((
             "",
             vec![Type {
-                name: "Object".to_string(),
+                name: "object".to_string(),
                 sub_types: vec!["type1".to_string(), "type2".to_string()]
             }]
         )),
@@ -112,7 +112,7 @@ fn test() {
             "",
             vec![
                 Type {
-                    name: "Objects".to_string(),
+                    name: "objects".to_string(),
                     sub_types: vec!["type1".to_string(), "type2".to_string()]
                 },
                 Type {
@@ -133,7 +133,7 @@ fn test() {
         Ok((
             "",
             vec![Type {
-                name: "Object".to_string(),
+                name: "object".to_string(),
                 sub_types: vec!["type1".to_string(), "type2".to_string()]
             }]
         )),
@@ -144,7 +144,7 @@ fn test() {
             "",
             vec![
                 Type {
-                    name: "Object".to_string(),
+                    name: "object".to_string(),
                     sub_types: vec!["type-1".to_string()]
                 },
                 Type {
