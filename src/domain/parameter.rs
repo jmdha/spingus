@@ -9,7 +9,7 @@ use nom::{
 
 use crate::shared::{named, spaced};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum Parameter {
     Untyped { name: String },
     Typed { name: String, type_name: String },

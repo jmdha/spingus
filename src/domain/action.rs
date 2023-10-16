@@ -10,7 +10,7 @@ use crate::shared::{named, spaced};
 
 use super::parameter::{self, Parameters};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Action {
     pub name: String,
     pub parameters: Parameters,
