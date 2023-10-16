@@ -21,7 +21,40 @@ pub enum StringExpression {
     Not(Box<StringExpression>),
 }
 pub type StringExpressions = Vec<StringExpression>;
+impl StringExpression {
+    pub fn to_string(&self) -> String {
+        match self {
+            StringExpression::Predicate(p) => {
+                let mut parameters = "".to_string();
+                for parameter in &p.parameters {
+                    parameters += " ?";
+                    parameters += &parameter;
+                }
+                format!("({}{})", p.name, parameters)
+            }
+            StringExpression::Equal(e) => {
+                let mut parameters = "".to_string();
+                for parameter in e.iter() {
+                    parameters += " ?";
+                    parameters += &parameter;
+                }
 
+                format!("(= {})", parameters)
+            }
+            StringExpression::And(ps) => {
+                let mut s = "(and".to_string();
+                for p in ps {
+                    s += " ";
+                    s += &p.to_string();
+                }
+                s += ")";
+                s
+            }
+            StringExpression::Or(_) => todo!(),
+            StringExpression::Not(n) => format!("(not {})", n.to_string()).to_string(),
+        }
+    }
+}
 fn parse_predicate(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, term) = parse_term(input)?;
     Ok((remainder, StringExpression::Predicate(term)))
