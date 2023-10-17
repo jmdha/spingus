@@ -9,7 +9,7 @@ use nom::{
 
 use crate::shared::{named, spaced};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum Parameter {
     Untyped { name: String },
     Typed { name: String, type_name: String },
@@ -58,6 +58,26 @@ pub(super) fn parse_parameters(input: &str) -> IResult<&str, Parameters> {
             acc
         },
     )(input)
+}
+
+pub fn parameters_to_string(parameters: &Parameters) -> String {
+    let mut s: String = " ".to_string();
+
+    for parameter in parameters {
+        let parameter_s;
+        match parameter {
+            Parameter::Untyped { name } => {
+                parameter_s = name.to_string();
+            }
+            Parameter::Typed { name, type_name } => {
+                parameter_s = format!("?{} - {}", name, type_name);
+            }
+        }
+        s.push_str(&parameter_s);
+        s.push_str(" ");
+    }
+
+    s
 }
 
 #[test]

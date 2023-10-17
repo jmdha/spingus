@@ -6,16 +6,45 @@ use nom::{
     sequence::delimited, IResult,
 };
 
-use crate::shared::{named, spaced};
+use crate::{
+    domain::parameter::parameters_to_string,
+    shared::{named, spaced},
+};
 
 use super::parameter::{self, Parameters};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Action {
     pub name: String,
     pub parameters: Parameters,
     pub precondition: Option<StringExpression>,
     pub effect: StringExpression,
+}
+
+impl Action {
+    fn precondition_to_string(&self) -> String {
+        match &self.precondition {
+            Some(precondition) => format!(":precondition {}", precondition.to_string()),
+            None => "".to_string(),
+        }
+    }
+    fn effect_to_string(&self) -> String {
+        format!(":effect {}", self.effect.to_string()).to_string()
+    }
+
+    pub fn to_string(&self) -> String {
+        format!(
+            "(:action {}
+    :parameters ({})
+    {}
+    {}
+)",
+            self.name,
+            parameters_to_string(&self.parameters),
+            self.precondition_to_string(),
+            self.effect_to_string()
+        )
+    }
 }
 pub type Actions = Vec<Action>;
 
