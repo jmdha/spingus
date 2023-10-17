@@ -130,5 +130,23 @@ mod test {
             )),
             parse_predicates(":predicates (predicate ?p1 - type ?p2)")
         );
+        assert_eq!(
+            Ok((
+                "",
+                vec![Predicate {
+                    name: "predicate".to_string(),
+                    parameters: vec![
+                        Parameter::Typed {
+                            name: "p1".to_string(),
+                            type_name: "type".to_string()
+                        },
+                        Parameter::Untyped {
+                            name: "p2".to_string(),
+                        },
+                    ]
+                }]
+            )),
+            parse_predicates(":predicates (predicate ?p1 - type ?p2)")
+        );
     }
 }

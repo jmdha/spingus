@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::fs;
 
 use spingus::domain;
 
@@ -22,13 +22,13 @@ use rstest::*;
 #[case("driverlog-hand-coded")]
 #[case("barman-agile")]
 #[case("barman-satisficing")]
+#[case("barman-mco14-strips")]
 #[case("grid")]
 #[case("child-snack-agile")]
 #[case("child-snack-satisficing")]
 #[case("hiking-sequential-agile")]
+#[case("zenotravel")]
 fn parse_domain(#[case] domain_name: &str) {
-    let path = env::current_dir().unwrap();
-    println!("The current directory is {}", path.display());
     if let Ok(str) = fs::read_to_string(format!("tests/data/{}/domain.pddl", domain_name)) {
         let parse_result = domain::parse_domain(&str);
         if let Ok(dom) = parse_result {

@@ -7,6 +7,7 @@ use rstest::*;
 #[rstest]
 #[case("barman-agile")]
 #[case("barman-satisficing")]
+#[case("barman-mco14-strips")]
 #[case("blocks-typed")]
 #[case("blocks-untyped")]
 #[case("child-snack-agile")]
