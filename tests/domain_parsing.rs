@@ -28,6 +28,7 @@ use rstest::*;
 #[case("child-snack-satisficing")]
 #[case("hiking-sequential-agile")]
 #[case("zenotravel")]
+#[case("storage")]
 fn parse_domain(#[case] domain_name: &str) {
     if let Ok(str) = fs::read_to_string(format!("tests/data/{}/domain.pddl", domain_name)) {
         let parse_result = domain::parse_domain(&str);

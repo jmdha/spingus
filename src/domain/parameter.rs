@@ -1,6 +1,7 @@
 use nom::{
     branch::alt,
-    character::complete::{char, multispace0},
+    bytes::complete::tag,
+    character::complete::{char, multispace0, multispace1},
     combinator::opt,
     multi::{fold_many0, many1, separated_list1},
     sequence::{delimited, preceded, separated_pair},
@@ -11,12 +12,42 @@ use crate::shared::{named, spaced};
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum Parameter {
-    Untyped { name: String },
-    Typed { name: String, type_name: String },
+    Untyped {
+        name: String,
+    },
+    Typed {
+        name: String,
+        type_name: String,
+    },
+    Either {
+        name: String,
+        type_names: Vec<String>,
+    },
 }
 
 pub type Parameters = Vec<Parameter>;
-
+fn parse_either(input: &str) -> IResult<&str, Parameters> {
+    let (remainder, parameters) = separated_pair(
+        separated_list1(multispace0, preceded(opt(char('?')), named)),
+        delimited(multispace0, char('-'), multispace0),
+        delimited(
+            char('('),
+            preceded(tag("either "), separated_list1(multispace1, named)),
+            char(')'),
+        ),
+    )(input)?;
+    Ok((
+        remainder,
+        parameters
+            .0
+            .iter()
+            .map(|parameter| Parameter::Either {
+                name: parameter.to_string(),
+                type_names: parameters.1.clone(),
+            })
+            .collect(),
+    ))
+}
 fn parse_typed(input: &str) -> IResult<&str, Parameters> {
     let (remainder, parameters) = separated_pair(
         separated_list1(multispace0, preceded(opt(char('?')), named)),
@@ -51,7 +82,7 @@ fn parse_untyped(input: &str) -> IResult<&str, Parameters> {
 
 pub(super) fn parse_parameters(input: &str) -> IResult<&str, Parameters> {
     fold_many0(
-        spaced(alt((parse_typed, parse_untyped))),
+        spaced(alt((parse_either, parse_typed, parse_untyped))),
         Vec::new,
         |mut acc: Vec<_>, mut item| {
             acc.append(&mut item);
@@ -71,6 +102,13 @@ pub fn parameters_to_string(parameters: &Parameters) -> String {
             }
             Parameter::Typed { name, type_name } => {
                 parameter_s = format!("?{} - {}", name, type_name);
+            }
+            Parameter::Either { name, type_names } => {
+                let mut s = "".to_string();
+                type_names
+                    .iter()
+                    .for_each(|n| s.push_str(&format!(" {}", n)));
+                parameter_s = format!("?{} - (either {})", name, format!("(either{})", s));
             }
         }
         s.push_str(&parameter_s);
@@ -177,5 +215,15 @@ fn test() {
             ]
         )),
         parse_parameters("?p1 - type ?p2")
+    );
+    assert_eq!(
+        Ok((
+            "",
+            vec![Parameter::Either {
+                name: "p1".to_string(),
+                type_names: vec!["type_a".to_string(), "type_b".to_string()]
+            }]
+        )),
+        parse_parameters("?p1 - (either type_a type_b)")
     );
 }
