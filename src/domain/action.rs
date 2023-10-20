@@ -72,8 +72,7 @@ fn parse_effect(input: &str) -> IResult<&str, StringExpression> {
     parse_expression(remainder)
 }
 
-#[allow(dead_code)]
-pub(super) fn parse_action(input: &str) -> IResult<&str, Action> {
+pub fn parse_action(input: &str) -> IResult<&str, Action> {
     let (remainder, _) = spaced(tag(":action"))(input)?;
     let (remainder, (name, parameters, precondition, effect)) = permutation((
         parse_name,
