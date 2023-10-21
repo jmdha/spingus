@@ -64,10 +64,13 @@ pub(super) fn parse_types(input: &str) -> IResult<&str, Vec<Type>> {
     //      ...
     // )
     for i in 0..types.len() {
-        for t in i + 1..types.len() {
+        let mut t = i + 1;
+        while t < types.len() {
             if types[i].name == types[t].name {
                 let mut o = types.remove(t);
                 types[i].sub_types.append(&mut o.sub_types);
+            } else {
+                t += 1;
             }
         }
     }
@@ -154,5 +157,38 @@ fn test() {
             ]
         )),
         parse_types(":types type-1 - Object subtype - type-1")
+    );
+    assert_eq!(
+        Ok((
+            "",
+            vec![Type {
+                name: "object".to_string(),
+                sub_types: vec![
+                    "type_1".into(),
+                    "type_2".into(),
+                    "type_3".into(),
+                    "type_4".into()
+                ]
+            },]
+        )),
+        parse_types(":types type_1 - object type_2 - object type_3 - object type_4 - object")
+    );
+    assert_eq!(
+        Ok((
+            "",
+            vec![Type {
+                name: "object".to_string(),
+                sub_types: vec![
+                    "type_1".into(),
+                    "type_2".into(),
+                    "type_3".into(),
+                    "type_4".into(),
+                    "type_5".into()
+                ]
+            },]
+        )),
+        parse_types(
+            ":types type_1 - object type_2 - object type_3 - object type_4 type_5 - object"
+        )
     );
 }
