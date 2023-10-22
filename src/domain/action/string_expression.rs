@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::tag_no_case,
     character::complete::{char, multispace0},
     multi::many1,
-    sequence::{delimited, preceded},
+    sequence::{delimited, preceded, separated_pair},
     IResult,
 };
 
@@ -19,6 +19,7 @@ pub enum StringExpression {
     And(StringExpressions),
     Or(StringExpressions),
     Not(Box<StringExpression>),
+    Imply(Box<StringExpression>, Box<StringExpression>),
 }
 pub type StringExpressions = Vec<StringExpression>;
 impl StringExpression {
@@ -52,6 +53,7 @@ impl StringExpression {
             }
             StringExpression::Or(_) => todo!(),
             StringExpression::Not(n) => format!("(not {})", n.to_string()).to_string(),
+            StringExpression::Imply(_, _) => todo!(),
         }
     }
 }
@@ -84,11 +86,27 @@ fn parse_not(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, child) = parse_expression(remainder)?;
     Ok((remainder, StringExpression::Not(Box::new(child))))
 }
+fn parse_imply(input: &str) -> IResult<&str, StringExpression> {
+    let (remainder, _) = preceded(multispace0, tag_no_case("imply"))(input)?;
+    let (remainder, (antecendent, consequent)) =
+        separated_pair(parse_expression, multispace0, parse_expression)(remainder)?;
+    Ok((
+        remainder,
+        StringExpression::Imply(Box::new(antecendent), Box::new(consequent)),
+    ))
+}
 
 pub(super) fn parse_expression(input: &str) -> IResult<&str, StringExpression> {
     delimited(
         spaced(char('(')),
-        alt((parse_and, parse_or, parse_not, parse_equal, parse_predicate)),
+        alt((
+            parse_and,
+            parse_or,
+            parse_not,
+            parse_equal,
+            parse_imply,
+            parse_predicate,
+        )),
         spaced(char(')')),
     )(input)
 }
@@ -193,5 +211,37 @@ fn test() {
             StringExpression::Equal(vec!["a".to_string(), "b".to_string(),])
         )),
         parse_expression("(= ?a ?b)")
+    );
+    assert_eq!(
+        Ok((
+            "",
+            StringExpression::Imply(
+                Box::new(StringExpression::Predicate(Term {
+                    name: "predicate".to_string(),
+                    parameters: vec!["a".to_string()]
+                })),
+                Box::new(StringExpression::Predicate(Term {
+                    name: "predicate".to_string(),
+                    parameters: vec!["b".to_string()]
+                }))
+            )
+        )),
+        parse_expression("(imply (predicate ?a) (predicate ?b))")
+    );
+    assert_eq!(
+        Ok((
+            "",
+            StringExpression::Imply(
+                Box::new(StringExpression::Predicate(Term {
+                    name: "closer".to_string(),
+                    parameters: vec!["a2".to_string(), "a1".to_string()]
+                })),
+                Box::new(StringExpression::Predicate(Term {
+                    name: "free".to_string(),
+                    parameters: vec!["a2".to_string(), "t".to_string()]
+                }))
+            )
+        )),
+        parse_expression("(imply (closer ?a2 ?a1) (free ?a2 ?t))")
     );
 }
