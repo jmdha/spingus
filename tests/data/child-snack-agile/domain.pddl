@@ -21,7 +21,7 @@
 (define (domain child-snack)
 (:requirements :typing :equality)
 (:types child bread-portion content-portion sandwich tray place)
-(:constants kitchen - place)
+
 
 (:predicates (at_kitchen_bread ?b - bread-portion)
 	     (at_kitchen_content ?c - content-portion)
@@ -37,6 +37,8 @@
              (at ?t - tray ?p - place)
 	     (notexist ?s - sandwich)
   )
+
+(:constants kitchen - place)
 
 (:action make_sandwich_no_gluten 
 	 :parameters (?s - sandwich ?b - bread-portion ?c - content-portion)

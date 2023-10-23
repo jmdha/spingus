@@ -68,7 +68,9 @@ fn parse_typed(input: &str) -> IResult<&str, Parameters> {
 }
 
 fn parse_untyped(input: &str) -> IResult<&str, Parameters> {
-    let (remainder, parameters) = many1(preceded(multispace0, preceded(char('?'), named)))(input)?;
+    let (remainder, parameters) =
+        many1(preceded(multispace0, preceded(opt(char('?')), named)))(input)?;
+
     Ok((
         remainder,
         parameters

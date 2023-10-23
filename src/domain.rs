@@ -38,13 +38,13 @@ pub struct Domain {
 
 fn parse_internal(input: &str) -> IResult<&str, Domain> {
     let (remaining, _) = spaced(tag("define"))(input)?;
-    let (remaining, (name, requirements, types, constants, predicates, actions)) =
+    let (remaining, (name, requirements, types, predicates, constants, actions)) =
         permutation((
             spaced(delimited(char('('), parse_name, char(')'))),
             opt(spaced(delimited(char('('), parse_requirements, char(')')))),
             opt(spaced(delimited(char('('), parse_types, char(')')))),
-            opt(spaced(delimited(char('('), parse_constants, char(')')))),
             spaced(delimited(char('('), parse_predicates, char(')'))),
+            opt(spaced(delimited(char('('), parse_constants, char(')')))),
             many1(spaced(delimited(char('('), parse_action, char(')')))),
         ))(remaining)?;
     Ok((
@@ -86,6 +86,107 @@ mod test {
 
     #[test]
     fn parse_dummy_domain() {
+        assert_eq!(
+            Ok(Domain {
+                name: "name".to_string(),
+                requirements: None,
+                types: None,
+                constants: Some(vec![Parameter::Untyped {
+                    name: "a".to_owned()
+                }]),
+                predicates: vec![Predicate {
+                    name: "predicate".to_string(),
+                    parameters: vec![Parameter::Untyped {
+                        name: "a".to_string(),
+                    },]
+                },],
+                actions: vec![Action {
+                    name: "action".to_string(),
+                    parameters: vec![Parameter::Untyped {
+                        name: "a".to_string(),
+                    }],
+                    precondition: None,
+                    effect: StringExpression::And(vec![StringExpression::Predicate(Term {
+                        name: "predicate".to_string(),
+                        parameters: vec!["a".to_string()]
+                    }),])
+                }]
+            }),
+            parse_domain(
+                "(define (domain name)
+                     (:constants a)
+                     (:predicates
+                         (predicate ?a)
+                     )
+                    
+
+                    (:action action
+                        :parameters (?a)
+                        :effect (and
+                            (predicate ?a)
+                        )
+                    )
+                )",
+            )
+        );
+    }
+    #[test]
+    fn parse_dummy_domain_2() {
+        assert_eq!(
+            Ok(Domain {
+                name: "name".to_string(),
+                requirements: None,
+                types: Some(vec![Type {
+                    name: "object".to_owned(),
+                    sub_types: vec!["type1".to_owned()]
+                }]),
+                constants: Some(vec![Parameter::Typed {
+                    name: "kitchen".to_owned(),
+                    type_name: "place".to_owned()
+                }]),
+                predicates: vec![Predicate {
+                    name: "predicate".to_string(),
+                    parameters: vec![Parameter::Typed {
+                        name: "a".to_string(),
+                        type_name: "type1".to_owned()
+                    },]
+                },],
+                actions: vec![Action {
+                    name: "action".to_string(),
+                    parameters: vec![Parameter::Typed {
+                        name: "a".to_string(),
+                        type_name: "type1".to_owned()
+                    }],
+                    precondition: None,
+                    effect: StringExpression::And(vec![StringExpression::Predicate(Term {
+                        name: "predicate".to_string(),
+                        parameters: vec!["a".to_string()]
+                    }),])
+                }]
+            }),
+            parse_domain(
+                "(define (domain name)
+                     (:types
+                        type1 - object
+                     )
+                     (:predicates
+                         (predicate ?a - type1)
+                     )
+                     (:constants kitchen - place)
+                    
+
+                    (:action action
+                        :parameters (?a - type1)
+                        :effect (and
+                            (predicate ?a)
+                        )
+                    )
+                )",
+            )
+        );
+    }
+    #[test]
+    fn parse_dummy_domain_3() {
         assert_eq!(
             Ok(Domain {
                 name: "name".to_string(),
