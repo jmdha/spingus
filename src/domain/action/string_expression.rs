@@ -2,7 +2,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag_no_case,
     character::complete::{char, multispace0},
-    multi::many1,
+    multi::{many0, many1},
     sequence::{delimited, preceded, separated_pair},
     IResult,
 };
@@ -72,7 +72,7 @@ fn parse_equal(input: &str) -> IResult<&str, StringExpression> {
 
 fn parse_and(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, _) = preceded(multispace0, tag_no_case("and"))(input)?;
-    let (remainder, children) = many1(parse_expression)(remainder)?;
+    let (remainder, children) = many0(parse_expression)(remainder)?;
     Ok((remainder, StringExpression::And(children)))
 }
 
