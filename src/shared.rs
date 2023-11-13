@@ -1,3 +1,4 @@
+use nom::bytes::complete::tag_no_case;
 use nom::{bytes::complete::is_not, IResult};
 use nom::{
     bytes::complete::tag, character::complete::multispace0, combinator::not, sequence::delimited,
@@ -33,6 +34,7 @@ pub fn named(input: &str) -> IResult<&str, String> {
     let (remainder, name) = is_not(" \t\r\n()?:")(input)?;
     not(tag("-"))(name)?;
     not(tag("="))(name)?;
+    not(tag_no_case("and"))(name)?;
     return Ok((remainder, name.to_lowercase().to_owned()));
 }
 
