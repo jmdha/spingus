@@ -1,10 +1,6 @@
-use nom::{
-    branch::alt, character::complete::multispace1, combinator::opt, multi::separated_list1,
-    sequence::preceded, IResult,
-};
+use nom::{branch::alt, character::complete::multispace1, multi::separated_list1, IResult};
 
 use crate::shared::{named, spaced};
-use nom::character::complete::char;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Term {
@@ -16,8 +12,7 @@ pub type Terms = Vec<Term>;
 
 fn parse_with_parameters(input: &str) -> IResult<&str, Term> {
     let (remainder, name) = spaced(named)(input)?;
-    let (remainder, parameters) =
-        separated_list1(multispace1, preceded(opt(char('?')), named))(remainder)?;
+    let (remainder, parameters) = separated_list1(multispace1, named)(remainder)?;
     Ok((
         remainder,
         Term {
@@ -59,7 +54,7 @@ fn test() {
             "",
             Term {
                 name: "name".to_string(),
-                parameters: vec!["a".to_string()],
+                parameters: vec!["?a".to_string()],
             }
         )),
         parse_term("name ?a")
@@ -69,7 +64,7 @@ fn test() {
             "",
             Term {
                 name: "name".to_string(),
-                parameters: vec!["a".to_string(), "b".to_string()],
+                parameters: vec!["?a".to_string(), "?b".to_string()],
             }
         )),
         parse_term("name ?a ?b")

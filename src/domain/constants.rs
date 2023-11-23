@@ -1,7 +1,4 @@
-use nom::{
-    bytes::complete::{tag, tag_no_case},
-    IResult,
-};
+use nom::{bytes::complete::tag_no_case, IResult};
 
 use crate::shared::spaced;
 

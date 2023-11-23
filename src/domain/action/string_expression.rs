@@ -22,41 +22,6 @@ pub enum StringExpression {
     Imply(Box<StringExpression>, Box<StringExpression>),
 }
 pub type StringExpressions = Vec<StringExpression>;
-impl StringExpression {
-    pub fn to_string(&self) -> String {
-        match self {
-            StringExpression::Predicate(p) => {
-                let mut parameters = "".to_string();
-                for parameter in &p.parameters {
-                    parameters += " ?";
-                    parameters += &parameter;
-                }
-                format!("({}{})", p.name, parameters)
-            }
-            StringExpression::Equal(e) => {
-                let mut parameters = "".to_string();
-                for parameter in e.iter() {
-                    parameters += " ?";
-                    parameters += &parameter;
-                }
-
-                format!("(= {})", parameters)
-            }
-            StringExpression::And(ps) => {
-                let mut s = "(and".to_string();
-                for p in ps {
-                    s += " ";
-                    s += &p.to_string();
-                }
-                s += ")";
-                s
-            }
-            StringExpression::Or(_) => todo!(),
-            StringExpression::Not(n) => format!("(not {})", n.to_string()).to_string(),
-            StringExpression::Imply(_, _) => todo!(),
-        }
-    }
-}
 fn parse_predicate(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, term) = parse_term(input)?;
     Ok((remainder, StringExpression::Predicate(term)))
@@ -65,8 +30,7 @@ fn parse_predicate(input: &str) -> IResult<&str, StringExpression> {
 fn parse_equal(input: &str) -> IResult<&str, StringExpression> {
     let (remainder, _) = preceded(multispace0, tag_no_case("="))(input)?;
     println!("{}", remainder);
-    let (remainder, children) =
-        many1(preceded(multispace0, preceded(char('?'), named)))(remainder)?;
+    let (remainder, children) = many1(preceded(multispace0, named))(remainder)?;
     Ok((remainder, StringExpression::Equal(children)))
 }
 
@@ -128,7 +92,7 @@ fn test() {
             "",
             StringExpression::Predicate(Term {
                 name: "predicate".to_string(),
-                parameters: vec!["a".to_string()]
+                parameters: vec!["?a".to_string()]
             })
         )),
         parse_expression("(predicate ?a)")
@@ -138,7 +102,7 @@ fn test() {
             "",
             StringExpression::Predicate(Term {
                 name: "predicate".to_string(),
-                parameters: vec!["a".to_string(), "b".to_string()]
+                parameters: vec!["?a".to_string(), "?b".to_string()]
             })
         )),
         parse_expression("(predicate ?a ?b)")
@@ -148,7 +112,7 @@ fn test() {
             "",
             StringExpression::Not(Box::new(StringExpression::Predicate(Term {
                 name: "predicate".to_string(),
-                parameters: vec!["a".to_string()]
+                parameters: vec!["?a".to_string()]
             })))
         )),
         parse_expression("(not (predicate ?a))")
@@ -158,7 +122,7 @@ fn test() {
             "",
             StringExpression::And(vec![StringExpression::Predicate(Term {
                 name: "predicate".to_string(),
-                parameters: vec!["a".to_string()]
+                parameters: vec!["?a".to_string()]
             })])
         )),
         parse_expression("(and (predicate ?a))")
@@ -169,11 +133,11 @@ fn test() {
             StringExpression::And(vec![
                 StringExpression::Predicate(Term {
                     name: "predicate".to_string(),
-                    parameters: vec!["a".to_string()]
+                    parameters: vec!["?a".to_string()]
                 }),
                 StringExpression::Predicate(Term {
                     name: "predicate".to_string(),
-                    parameters: vec!["b".to_string()]
+                    parameters: vec!["?b".to_string()]
                 })
             ])
         )),
@@ -184,7 +148,7 @@ fn test() {
             "",
             StringExpression::Or(vec![StringExpression::Predicate(Term {
                 name: "predicate".to_string(),
-                parameters: vec!["a".to_string()]
+                parameters: vec!["?a".to_string()]
             })])
         )),
         parse_expression("(or (predicate ?a))")
@@ -195,11 +159,11 @@ fn test() {
             StringExpression::Or(vec![
                 StringExpression::Predicate(Term {
                     name: "predicate".to_string(),
-                    parameters: vec!["a".to_string()]
+                    parameters: vec!["?a".to_string()]
                 }),
                 StringExpression::Predicate(Term {
                     name: "predicate".to_string(),
-                    parameters: vec!["b".to_string()]
+                    parameters: vec!["?b".to_string()]
                 }),
             ])
         )),
@@ -208,7 +172,7 @@ fn test() {
     assert_eq!(
         Ok((
             "",
-            StringExpression::Equal(vec!["a".to_string(), "b".to_string(),])
+            StringExpression::Equal(vec!["?a".to_string(), "?b".to_string(),])
         )),
         parse_expression("(= ?a ?b)")
     );
@@ -218,11 +182,11 @@ fn test() {
             StringExpression::Imply(
                 Box::new(StringExpression::Predicate(Term {
                     name: "predicate".to_string(),
-                    parameters: vec!["a".to_string()]
+                    parameters: vec!["?a".to_string()]
                 })),
                 Box::new(StringExpression::Predicate(Term {
                     name: "predicate".to_string(),
-                    parameters: vec!["b".to_string()]
+                    parameters: vec!["?b".to_string()]
                 }))
             )
         )),
@@ -234,11 +198,11 @@ fn test() {
             StringExpression::Imply(
                 Box::new(StringExpression::Predicate(Term {
                     name: "closer".to_string(),
-                    parameters: vec!["a2".to_string(), "a1".to_string()]
+                    parameters: vec!["?a2".to_string(), "?a1".to_string()]
                 })),
                 Box::new(StringExpression::Predicate(Term {
                     name: "free".to_string(),
-                    parameters: vec!["a2".to_string(), "t".to_string()]
+                    parameters: vec!["?a2".to_string(), "?t".to_string()]
                 }))
             )
         )),

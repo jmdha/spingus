@@ -55,7 +55,7 @@ mod test {
                 vec![Predicate {
                     name: "predicate".to_string(),
                     parameters: vec![Parameter::Untyped {
-                        name: "p".to_string()
+                        name: "?p".to_string()
                     }]
                 }]
             )),
@@ -67,7 +67,7 @@ mod test {
                 vec![Predicate {
                     name: "predicate".to_string(),
                     parameters: vec![Parameter::Typed {
-                        name: "p".to_string(),
+                        name: "?p".to_string(),
                         type_name: "type".to_string()
                     }]
                 }]
@@ -81,11 +81,11 @@ mod test {
                     name: "predicate".to_string(),
                     parameters: vec![
                         Parameter::Typed {
-                            name: "p1".to_string(),
+                            name: "?p1".to_string(),
                             type_name: "type".to_string()
                         },
                         Parameter::Typed {
-                            name: "p2".to_string(),
+                            name: "?p2".to_string(),
                             type_name: "type".to_string()
                         },
                     ]
@@ -100,11 +100,11 @@ mod test {
                     name: "predicate".to_string(),
                     parameters: vec![
                         Parameter::Typed {
-                            name: "p1".to_string(),
+                            name: "?p1".to_string(),
                             type_name: "type1".to_string()
                         },
                         Parameter::Typed {
-                            name: "p2".to_string(),
+                            name: "?p2".to_string(),
                             type_name: "type2".to_string()
                         },
                     ]
@@ -119,11 +119,11 @@ mod test {
                     name: "predicate".to_string(),
                     parameters: vec![
                         Parameter::Typed {
-                            name: "p1".to_string(),
+                            name: "?p1".to_string(),
                             type_name: "type".to_string()
                         },
                         Parameter::Untyped {
-                            name: "p2".to_string(),
+                            name: "?p2".to_string(),
                         },
                     ]
                 }]
@@ -137,11 +137,11 @@ mod test {
                     name: "predicate".to_string(),
                     parameters: vec![
                         Parameter::Typed {
-                            name: "p1".to_string(),
+                            name: "?p1".to_string(),
                             type_name: "type".to_string()
                         },
                         Parameter::Untyped {
-                            name: "p2".to_string(),
+                            name: "?p2".to_string(),
                         },
                     ]
                 }]

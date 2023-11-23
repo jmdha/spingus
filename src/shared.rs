@@ -31,7 +31,7 @@ where
 }
 
 pub fn named(input: &str) -> IResult<&str, String> {
-    let (remainder, name) = is_not(" \t\r\n()?:")(input)?;
+    let (remainder, name) = is_not(" \t\r\n():")(input)?;
     not(tag("-"))(name)?;
     not(tag("="))(name)?;
     not(tag_no_case("and"))(name)?;

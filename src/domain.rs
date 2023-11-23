@@ -97,18 +97,18 @@ mod test {
                 predicates: vec![Predicate {
                     name: "predicate".to_string(),
                     parameters: vec![Parameter::Untyped {
-                        name: "a".to_string(),
+                        name: "?a".to_string(),
                     },]
                 },],
                 actions: vec![Action {
                     name: "action".to_string(),
                     parameters: vec![Parameter::Untyped {
-                        name: "a".to_string(),
+                        name: "?a".to_string(),
                     }],
                     precondition: None,
                     effect: StringExpression::And(vec![StringExpression::Predicate(Term {
                         name: "predicate".to_string(),
-                        parameters: vec!["a".to_string()]
+                        parameters: vec!["?a".to_string()]
                     }),])
                 }]
             }),
@@ -147,20 +147,20 @@ mod test {
                 predicates: vec![Predicate {
                     name: "predicate".to_string(),
                     parameters: vec![Parameter::Typed {
-                        name: "a".to_string(),
+                        name: "?a".to_string(),
                         type_name: "type1".to_owned()
                     },]
                 },],
                 actions: vec![Action {
                     name: "action".to_string(),
                     parameters: vec![Parameter::Typed {
-                        name: "a".to_string(),
+                        name: "?a".to_string(),
                         type_name: "type1".to_owned()
                     }],
                     precondition: None,
                     effect: StringExpression::And(vec![StringExpression::Predicate(Term {
                         name: "predicate".to_string(),
-                        parameters: vec!["a".to_string()]
+                        parameters: vec!["?a".to_string()]
                     }),])
                 }]
             }),
@@ -206,41 +206,41 @@ mod test {
                     Predicate {
                         name: "predicate1".to_string(),
                         parameters: vec![Parameter::Typed {
-                            name: "a".to_string(),
+                            name: "?a".to_string(),
                             type_name: "type1".to_string()
                         },]
                     },
                     Predicate {
                         name: "predicate2".to_string(),
                         parameters: vec![Parameter::Untyped {
-                            name: "a".to_string(),
+                            name: "?a".to_string(),
                         },]
                     }
                 ],
                 actions: vec![Action {
                     name: "action1".to_string(),
                     parameters: vec![Parameter::Typed {
-                        name: "a".to_string(),
+                        name: "?a".to_string(),
                         type_name: "type1".to_string()
                     }],
                     precondition: Some(StringExpression::And(vec![
                         StringExpression::Predicate(Term {
                             name: "predicate1".to_string(),
-                            parameters: vec!["a".to_string()]
+                            parameters: vec!["?a".to_string()]
                         }),
                         StringExpression::Not(Box::new(StringExpression::Predicate(Term {
                             name: "predicate2".to_string(),
-                            parameters: vec!["a".to_string()]
+                            parameters: vec!["?a".to_string()]
                         })))
                     ])),
                     effect: StringExpression::And(vec![
                         StringExpression::Predicate(Term {
                             name: "predicate1".to_string(),
-                            parameters: vec!["a".to_string()]
+                            parameters: vec!["?a".to_string()]
                         }),
                         StringExpression::Predicate(Term {
                             name: "predicate2".to_string(),
-                            parameters: vec!["a".to_string()]
+                            parameters: vec!["?a".to_string()]
                         })
                     ])
                 }]
