@@ -1,4 +1,4 @@
-use crate::shared::{remove_comments, spaced};
+use crate::shared::spaced;
 use crate::term::{parse_term, Term};
 use nom::character::complete::char;
 use nom::multi::many0;
@@ -7,8 +7,7 @@ use nom::sequence::delimited;
 pub type SASPlan = Vec<Term>;
 
 pub fn parse_sas(input: &str) -> Result<SASPlan, String> {
-    let clean = remove_comments(input);
-    let result = many0(delimited(spaced(char('(')), parse_term, spaced(char(')'))))(&clean);
+    let result = many0(delimited(spaced(char('(')), parse_term, spaced(char(')'))))(&input);
     match result {
         Ok(result) => Ok(result.1),
         Err(str) => Err(str.to_string()),
