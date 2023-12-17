@@ -4,6 +4,21 @@ use nom::{
     bytes::complete::tag, character::complete::multispace0, combinator::not, sequence::delimited,
 };
 
+pub type Error = (String, logos::Span);
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+pub(crate) fn line_num(str: &str, index: usize) -> usize {
+    let mut acc = 0;
+    for (i, line) in str.lines().enumerate() {
+        if acc + line.len() > index {
+            return i;
+        }
+        acc += line.len();
+    }
+    unreachable!();
+}
+
 pub fn remove_comments(input: &str) -> String {
     let mut out: String = String::new();
     let mut in_comment = false;

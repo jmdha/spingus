@@ -1,5 +1,5 @@
 use criterion::{criterion_group, BenchmarkId, Criterion};
-use spingus::sas_plan::parse_sas;
+use spingus::plan;
 
 use crate::random_name;
 
@@ -32,7 +32,7 @@ fn parse_plan(c: &mut Criterion) {
             BenchmarkId::from_parameter(length),
             length,
             |b, _: &usize| {
-                b.iter(|| parse_sas(&plan));
+                b.iter(|| plan::parse(&plan));
             },
         );
     }
