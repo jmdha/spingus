@@ -15,7 +15,7 @@ fn parse_step<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Step<'a>> {
             Ok(Token::Name(name)) => name,
             _ => return Err(("unexpected token".to_owned(), lexer.span())),
         },
-        None => return Err(("unexpected token".to_owned(), lexer.span())),
+        None => return Err(("unexpected end of input".to_owned(), lexer.span())),
     };
     let mut objects = Vec::new();
 
