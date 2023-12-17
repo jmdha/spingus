@@ -1,4 +1,4 @@
-use criterion::{criterion_group, BenchmarkId, Criterion};
+use criterion::{criterion_group, Criterion};
 use spingus::plan;
 
 pub const PLAN: &'static str = r#"
@@ -14,7 +14,7 @@ pub const PLAN: &'static str = r#"
     (abcde abcde abcde)
     (abcde abcde abcde)
     (abcde abcde abcde)
-    "#;
+"#;
 
 fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("parse-plan");
