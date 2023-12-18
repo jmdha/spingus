@@ -38,12 +38,9 @@ use rstest::*;
 #[case("transport")]
 #[case("zenotravel")]
 fn parse_problem(#[case] domain_name: &str) {
-    let problem_path = format!("tests/data/{}/instances/", domain_name);
-    let files = fs::read_dir(problem_path).unwrap();
-    for file in files {
-        if let Ok(content) = fs::read_to_string(file.unwrap().path()) {
-            let problem = problem::parse(&content);
-            assert!(problem.name.is_some());
-        }
+    let problem_path = format!("tests/data/{}/problem.pddl/", domain_name);
+    if let Ok(content) = fs::read_to_string(problem_path) {
+        let problem = problem::parse(&content);
+        assert!(problem.name.is_some());
     }
 }
