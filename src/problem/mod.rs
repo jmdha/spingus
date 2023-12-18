@@ -1,9 +1,10 @@
-mod goal;
-mod init;
-mod objects;
+pub mod goal;
+pub mod init;
+pub mod objects;
 mod token;
 
-use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
+
 use logos::{Lexer, Logos};
 
 use crate::shared::{line_num, Result};

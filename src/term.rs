@@ -8,8 +8,6 @@ pub struct Term {
     pub parameters: Vec<String>,
 }
 
-pub type Terms = Vec<Term>;
-
 fn parse_with_parameters(input: &str) -> IResult<&str, Term> {
     let (remainder, name) = spaced(named)(input)?;
     let (remainder, parameters) = separated_list1(multispace1, named)(remainder)?;

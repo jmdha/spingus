@@ -34,7 +34,7 @@ fn parse_fact<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Fact<'a>> {
     Ok(Fact { predicate, objects })
 }
 
-pub fn parse_init<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Init<'a>> {
+pub(super) fn parse_init<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Init<'a>> {
     let mut init = Vec::new();
 
     while let Some(token) = lexer.next() {

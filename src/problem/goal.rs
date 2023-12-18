@@ -77,7 +77,7 @@ fn parse_expression<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Goal<'a>> {
     }
 }
 
-pub fn parse_goal<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Goal<'a>> {
+pub(super) fn parse_goal<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Goal<'a>> {
     match lexer.next() {
         Some(token) => match token {
             Ok(Token::LParen) => {}
