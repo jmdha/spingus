@@ -1,10 +1,12 @@
+use std::ops::Range;
+
 use nom::bytes::complete::tag_no_case;
 use nom::{bytes::complete::is_not, IResult};
 use nom::{
     bytes::complete::tag, character::complete::multispace0, combinator::not, sequence::delimited,
 };
 
-pub type Error = (String, logos::Span);
+pub type Error = (String, Range<usize>);
 
 pub type Result<T> = std::result::Result<T, Error>;
 
