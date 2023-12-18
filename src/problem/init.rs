@@ -1,83 +1,49 @@
-use nom::character::complete::char;
-use nom::multi::many1;
-use nom::sequence::delimited;
-use nom::{bytes::complete::tag_no_case, IResult};
+use logos::Lexer;
 
-use crate::{
-    shared::spaced,
-    term::{parse_term, Term},
-};
+use crate::shared::Result;
 
-pub type Init = Term;
-pub type Inits = Vec<Init>;
+use super::token::Token;
 
-fn parse_init(input: &str) -> IResult<&str, Init> {
-    parse_term(input)
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Fact<'a> {
+    pub predicate: &'a str,
+    pub objects: Vec<&'a str>,
 }
 
-pub(super) fn parse_inits(input: &str) -> IResult<&str, Inits> {
-    let (remainder, _) = spaced(tag_no_case(":init"))(input)?;
-    many1(delimited(spaced(char('(')), parse_init, spaced(char(')'))))(remainder)
+pub type Init<'a> = Vec<Fact<'a>>;
+
+fn parse_fact<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Fact<'a>> {
+    let predicate = match lexer.next() {
+        Some(token) => match token {
+            Ok(Token::Name(name)) => name,
+            _ => return Err(("unexpected token".to_owned(), lexer.span())),
+        },
+        None => return Err(("unexpected end of input".to_owned(), lexer.span())),
+    };
+
+    let mut objects = Vec::new();
+
+    while let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::Name(name)) => objects.push(name),
+            Ok(Token::RParen) => break,
+            _ => return Err(("unexpected token".to_owned(), lexer.span())),
+        }
+    }
+
+    Ok(Fact { predicate, objects })
 }
 
-#[test]
-fn parse_goal_test() {
-    assert_eq!(
-        Ok((
-            "",
-            vec![Term {
-                name: "name".to_string(),
-                parameters: vec![]
-            }]
-        )),
-        parse_inits(":init (Name)")
-    );
-    assert_eq!(
-        Ok((
-            "",
-            vec![Term {
-                name: "name".to_string(),
-                parameters: vec!["param1".to_string()]
-            }]
-        )),
-        parse_inits(":init (Name param1)")
-    );
-    assert_eq!(
-        Ok((
-            "",
-            vec![
-                Term {
-                    name: "name1".to_string(),
-                    parameters: vec!["param1".to_string()]
-                },
-                Term {
-                    name: "name2".to_string(),
-                    parameters: vec!["param2".to_string()]
-                }
-            ]
-        )),
-        parse_inits(
-            ":init (Name1 param1)
-                           (Name2 param2)"
-        )
-    );
-    assert_eq!(
-        Ok((
-            "",
-            vec![
-                Term {
-                    name: "name1".to_string(),
-                    parameters: vec!["param1".to_string()]
-                },
-                Term {
-                    name: "name2".to_string(),
-                    parameters: vec!["param2".to_string(), "param3".to_string()]
-                }
-            ]
-        )),
-        parse_inits(
-            ":init (Name1 param1)
-                           (Name2 param2 param3)"
-        )
-    );
+pub fn parse_init<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Init<'a>> {
+    let mut init = Vec::new();
+
+    while let Some(token) = lexer.next() {
+        match token {
+            Ok(Token::LParen) => init.push(parse_fact(lexer)?),
+            Ok(Token::RParen) => break,
+            _ => return Err(("unexpected token".to_owned(), lexer.span())),
+        }
+    }
+
+    Ok(init)
 }

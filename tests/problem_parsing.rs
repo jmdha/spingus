@@ -42,15 +42,8 @@ fn parse_problem(#[case] domain_name: &str) {
     let files = fs::read_dir(problem_path).unwrap();
     for file in files {
         if let Ok(content) = fs::read_to_string(file.unwrap().path()) {
-            let parse_result = problem::parse_problem(&content);
-            if let Ok(problem) = parse_result {
-                assert!(!problem.name.is_empty());
-            } else if let Err(err) = parse_result {
-                panic!(
-                    "Could not parse problem: \"{}\".\nWith error: \"{}\"",
-                    domain_name, err
-                );
-            }
+            let problem = problem::parse(&content);
+            assert!(problem.name.is_some());
         }
     }
 }

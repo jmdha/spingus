@@ -1,63 +1,134 @@
-use nom::{
-    branch::alt,
-    bytes::complete::{tag, tag_no_case},
-    character::complete::multispace0,
-    multi::many1,
-    sequence::{delimited, preceded},
-    IResult,
-};
+use logos::Lexer;
 
-use nom::character::complete::char;
+use crate::shared::Result;
 
-use crate::{
-    shared::spaced,
-    term::{parse_term, Term},
-};
+use super::token::Token;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum Goal {
-    Predicate(Term),
-    And(Goals),
-    Or(Goals),
-    Not(Box<Goal>),
-}
-pub type Goals = Vec<Goal>;
-
-fn parse_predicate(input: &str) -> IResult<&str, Goal> {
-    let (remainder, term) = parse_term(input)?;
-    Ok((remainder, Goal::Predicate(term)))
+pub enum Goal<'a> {
+    Fact {
+        predicate: &'a str,
+        objects: Vec<&'a str>,
+    },
+    Not(Box<Goal<'a>>),
+    And(Vec<Goal<'a>>),
+    Or(Vec<Goal<'a>>),
 }
 
-fn parse_and(input: &str) -> IResult<&str, Goal> {
-    let (remainder, _) = preceded(multispace0, tag_no_case("and"))(input)?;
-    let (remainder, children) = many1(parse_internal)(remainder)?;
-    Ok((remainder, Goal::And(children)))
+//  NOTE: assumes opening bracket '(' is consumed
+fn parse_expression<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Goal<'a>> {
+    let token = lexer
+        .next()
+        .ok_or(("unexpected end of input".to_owned(), lexer.span()))?;
+    match token {
+        Ok(Token::Name(name)) => {
+            let mut objects = Vec::new();
+
+            while let Some(token) = lexer.next() {
+                match token {
+                    Ok(Token::Name(name)) => objects.push(name),
+                    Ok(Token::RParen) => break,
+                    _ => return Err(("unexpected token".to_owned(), lexer.span())),
+                }
+            }
+
+            return Ok(Goal::Fact {
+                predicate: name,
+                objects,
+            });
+        }
+        Ok(Token::Not) => {
+            let n_token = lexer
+                .next()
+                .ok_or(("unexpected end of input".to_owned(), lexer.span()))?;
+            let expression = match n_token {
+                Ok(Token::LParen) => parse_expression(lexer),
+                _ => return Err(("unexpected token".to_owned(), lexer.span())),
+            }?;
+            return Ok(Goal::Not(Box::new(expression)));
+        }
+        Ok(Token::And) => {
+            let mut expressions = Vec::new();
+
+            while let Some(token) = lexer.next() {
+                match token {
+                    Ok(Token::RParen) => return Ok(Goal::And(expressions)),
+                    Ok(Token::LParen) => expressions.push(parse_expression(lexer)?),
+                    _ => return Err(("unexpected token".to_owned(), lexer.span())),
+                }
+            }
+
+            return Err(("unexpected end of input".to_owned(), lexer.span()));
+        }
+        Ok(Token::Or) => {
+            let mut expressions = Vec::new();
+
+            while let Some(token) = lexer.next() {
+                match token {
+                    Ok(Token::RParen) => return Ok(Goal::Or(expressions)),
+                    Ok(Token::LParen) => expressions.push(parse_expression(lexer)?),
+                    _ => return Err(("unexpected token".to_owned(), lexer.span())),
+                }
+            }
+
+            return Err(("unexpected end of input".to_owned(), lexer.span()));
+        }
+        _ => return Err(("unexpected token".to_owned(), lexer.span())),
+    }
 }
 
-fn parse_or(input: &str) -> IResult<&str, Goal> {
-    let (remainder, _) = preceded(multispace0, tag_no_case("and"))(input)?;
-    let (remainder, children) = many1(parse_internal)(remainder)?;
-    Ok((remainder, Goal::Or(children)))
+pub fn parse_goal<'a>(lexer: &mut Lexer<'a, Token<'a>>) -> Result<Goal<'a>> {
+    match lexer.next() {
+        Some(token) => match token {
+            Ok(Token::LParen) => {}
+            _ => return Err(("unexpected token".to_owned(), lexer.span())),
+        },
+        None => return Err(("unexpected end of input".to_owned(), lexer.span())),
+    };
+
+    let goal = parse_expression(lexer)?;
+
+    match lexer.next() {
+        Some(token) => match token {
+            Ok(Token::RParen) => {}
+            _ => return Err(("unexpected token".to_owned(), lexer.span())),
+        },
+        None => return Err(("unexpected end of input".to_owned(), lexer.span())),
+    };
+    Ok(goal)
 }
 
-fn parse_not(input: &str) -> IResult<&str, Goal> {
-    let (remainder, _) = preceded(multispace0, tag_no_case("and"))(input)?;
-    let (remainder, child) = parse_internal(remainder)?;
-    Ok((remainder, Goal::Not(Box::new(child))))
-}
+#[cfg(test)]
+mod test {
+    use logos::Logos;
 
-fn parse_internal(input: &str) -> IResult<&str, Goal> {
-    delimited(
-        spaced(char('(')),
-        alt((parse_and, parse_or, parse_not, parse_predicate)),
-        spaced(char(')')),
-    )(input)
-}
+    use crate::problem::{
+        goal::{parse_expression, parse_goal, Goal},
+        token::Token,
+    };
 
-pub(super) fn parse_goal(input: &str) -> IResult<&str, Goal> {
-    let (remainder, _) = spaced(tag(":goal"))(input)?;
-    parse_internal(remainder)
-}
+    use rstest::*;
 
-#[test]
-fn parse_goal_test() {}
+    #[rstest]
+    #[case("a)", Goal::Fact { predicate: "a", objects: vec![] })]
+    #[case("a b c)", Goal::Fact { predicate: "a", objects: vec!["b", "c"] })]
+    fn fact_parse(#[case] input: &str, #[case] expected: Goal) {
+        let mut lexer = Token::lexer(input);
+        assert_eq!(parse_expression(&mut lexer), Ok(expected));
+    }
+
+    #[rstest]
+    #[case("not (a))", Goal::Not(Box::new(Goal::Fact { predicate: "a", objects: vec![] })))]
+    fn not_parse(#[case] input: &str, #[case] expected: Goal) {
+        let mut lexer = Token::lexer(input);
+        assert_eq!(parse_expression(&mut lexer), Ok(expected));
+    }
+
+    #[rstest]
+    #[case("(a))", Goal::Fact { predicate: "a", objects: vec![] })]
+    #[case("(and (a) (b)))", Goal::And(vec![Goal::Fact { predicate: "a", objects: vec![] }, Goal::Fact { predicate: "b", objects: vec![] }]))]
+    fn goal_parse(#[case] input: &str, #[case] expected: Goal) {
+        let mut lexer = Token::lexer(input);
+        assert_eq!(parse_goal(&mut lexer), Ok(expected));
+    }
+}

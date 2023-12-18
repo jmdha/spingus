@@ -1,5 +1,5 @@
 use criterion::{criterion_group, Criterion};
-use spingus::problem::parse_problem;
+use spingus::problem;
 
 pub const PROBLEM: &'static str = r#"
     (define (problem p1)
@@ -25,7 +25,7 @@ pub const PROBLEM: &'static str = r#"
 fn bench(c: &mut Criterion) {
     let mut group = c.benchmark_group("parse-problem");
     group.throughput(criterion::Throughput::Bytes(PROBLEM.len() as u64));
-    group.bench_function("parse-problem", |b| b.iter(|| parse_problem(PROBLEM)));
+    group.bench_function("parse-problem", |b| b.iter(|| problem::parse(PROBLEM)));
     group.finish();
 }
 
